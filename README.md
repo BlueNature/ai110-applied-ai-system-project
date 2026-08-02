@@ -42,7 +42,7 @@ Describe your fixed game in numbered steps so a reader can follow along without 
 6. Game ends after the correct guess (win, earns a substantial amount of points) or after running out of attempts (lose)
 
 **Screenshot** *(optional)*:
-![Game Outcome](result.png)
+![Game Outcome](assets/ui-result.png)
 
 ## 🧪 Test Results
 

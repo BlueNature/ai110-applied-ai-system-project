@@ -1,0 +1,15 @@
+Binary search: an algorithm for finding an element in a sorted array by continuously chopping the search area in half.
+
+The first known implementation took place around 200 BC in ancient Babylon on clay tablets used for record keeping, but your brain has likely implemented binary search in everyday life without you even knowing it. Imagine looking for a word like "magic" in the dictionary. You wouldn't flip every page until you get to M. Instead, you open it in the middle. If you overshoot to the Qs, then you go to the middle of that chunk. This time you undershoot to the Js, so you do the same thing again, but in the other direction until finally you find the page you're looking for. Easy enough.
+
+Now it's time for your technical interview. You might be given a question like: "Given a sorted array, write a function that returns the index for the given element."
+
+The easy way to solve that problem is with a simple `for` loop. Just loop over every element in the array until you find the one you're looking for. That works, but you failed the interview because you need to go faster. A regular loop results in linear time complexity, but you can do better than that.
+
+Here's how we might map out a binary search on a whiteboard. First, we need to figure out the middle index. Instead of starting at index 0, we start in the middle. If it's equal to the target, then we return that index. But if that element is greater than the target, we know the target must be somewhere on the left, so we find the middle of that slice of the array. But if it's less than the target, then we know the target is somewhere on the right, so we repeat the process for that slice of the array. The result is a much faster algorithm with logarithmic time complexity because it's able to divide and conquer.
+
+Now to implement the code, we could use an iterative approach with a while loop or a recursive function. Either way is acceptable, but let's define a recursive function in JavaScript. The function takes the target value as an argument, as well as a starting and ending index. First, we have a base condition to stop looping when it reaches the end of the array, at which point we know the target is not in the array. From there we compute the middle index. Then we check to see if that middle index is equal to the target, at which point we can return because we found the element we're looking for. Otherwise, we need to continue searching, and that's where recursion comes into play. If the middle value is greater than the target, then we'll call the same function, but this time we'll put the ending index at the middle. The other possibility is that the middle value is less than the target, in which case we can also recurse, but this time we'll put the starting index in the middle. And now we have an algorithm that can find an element in a sorted array much faster than a regular loop.
+
+If you want to see more videos about algorithms on this channel, hit the like button and let me know in the comments. Thanks for watching, and I will see you in the next one.
+
+(created by Fireship: https://www.youtube.com/watch?v=MFhxShGxHWc)

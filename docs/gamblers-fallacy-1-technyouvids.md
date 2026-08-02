@@ -1,0 +1,11 @@
+You've watched that coin flip nine times. Heads, tails, then heads again, then tails, tails, tails, tails, tails, tails. And, what's going to come up next? Tails has been having a pretty good run, so it must be another tails. Or are we due for another heads?
+
+There are patterns everywhere in the universe, and our brain is very good at recognising them. Perhaps too good. It can readily see patterns that just aren't there. In truth, there is a fifty percent chance of heads and a fifty percent chance of tails, after every toss. It doesn't matter what came before, and luck doesn't come into it. At all. But it's hard to shake that feeling that there's a pattern in there somewhere - if only we look hard enough.
+
+This is called the Gambler's Fallacy. Our assumption that probability changes, depending on past results. And this may explain why casino's make so much money. It's all a matter of probability, one of the more complicated forms of logic. In fact it's so complicated, it was only a few centuries ago that some smart French chaps by the names of Pascal and de Fermat, worked out much of the mathematics behind it.
+
+Our brains make it difficult for us to see the logic in probability and lead us astray. We're wired to link the things we see as if they're related. For example, seeing a flash of lightning and hearing a boom of thunder makes it seem like as if the thunder was caused by the lightning. And there are plenty of reasons to believe that's true. But what if you ate a hotdog and then got sick. Was it the hotdog, or was it something else entirely? Medicine is full of such head scratching questions. People take pills and feel better. But a lot of logic and probability is needed to determine whether the pills were truly responsible. Just because one thing follows another, even if it happens a few times, does not necessarily mean that they're linked. There could be other factors, or it could simply be coincidence.
+
+To know for sure you have to test the circumstances again and again, looking for those other factors that could disprove the link. This reinforces confidence that your pattern is true. This is what science does. So while our brains see patterns, and this is often very useful, it takes science to prove that these patterns are real.
+
+(created by techNyouvids: https://www.youtube.com/watch?v=K8SkCh-n4rw)
