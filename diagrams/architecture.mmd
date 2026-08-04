@@ -1,0 +1,75 @@
+%% RAG feedback-generation workflow — Game Glitch Investigator
+%% Verified against app.py, logic_utils.py, llm_client.py, raguesser.py
+flowchart TD
+
+    %% ===== Instant, non-RAG hint (shown for scope contrast) =====
+    guess["Player submits a guess"]
+    instant["check_guess / update_score<br/>(instant Too-High / Too-Low / Win hint)"]
+    guess --> instant
+
+    %% ===== Human trigger =====
+    getFeedback(["Player clicks '🧠 Get Feedback'<br/>(midgame or postgame)"])
+
+    %% ===== Game logic layer: logic_utils.py =====
+    state["retrieve_formatted_stats()<br/>formats difficulty, guess history,<br/>secret, win/lose/playing status"]
+    orch{{"generate_feedback()"}}
+    getFeedback --> state --> orch
+
+    %% ===== Missing-key guardrail =====
+    fallback["Static fallback message<br/>(no LLM call made)"]
+    orch -->|"client is None<br/>(no GEMINI_API_KEY)"| fallback
+
+    %% ===== Step 1: keyword prompt + keyword LLM call =====
+    kwprompt[["prompts/keyword_system.txt"]]
+    kwcall["answer_keywords(game_state)<br/>GeminiClient"]
+    orch -->|"client available"| kwcall
+    kwprompt --> kwcall
+    state -.->|"game_state"| kwcall
+    kwcall --> gemini1[("Gemini API<br/>gemini-flash-lite-latest")]
+
+    %% ===== Step 2: document retrieval =====
+    retrieve["retrieve(keywords)<br/>RAGuesser: inverted index +<br/>token-overlap scoring"]
+    docs[("docs/*.md, *.txt<br/>strategy & gambler's-fallacy sources")]
+    kwcall --> retrieve
+    docs --> retrieve
+
+    guardrail{"score / query_tokens<br/>&gt;= MIN_RELEVANCE_RATIO (0.1)?"}
+    retrieve --> guardrail
+
+    refuse["'I do not know based on<br/>the docs I have.'"]
+    guardrail -->|"no section clears bar"| refuse
+
+    %% ===== Step 3: RAG LLM call, given game logic =====
+    ragprompt[["retrieval_system_midgame.txt /<br/>retrieval_system_postgame.txt<br/>+ retrieval_user.txt"]]
+    ragcall["answer_feedback(mode, snippets, game_state)<br/>GeminiClient"]
+    guardrail -->|"snippets found"| ragcall
+    ragprompt --> ragcall
+    state -.->|"game_state"| ragcall
+    ragcall --> gemini2[("Gemini API<br/>gemini-flash-lite-latest")]
+
+    %% ===== Step 4: feedback output =====
+    feedback["feedback_text"]
+    ragcall --> feedback
+    refuse --> feedback
+
+    display["st.info(feedback_text)<br/>shown to player"]
+    feedback --> display
+    fallback --> display
+
+    %% ===== Human verification of grounding =====
+    sources["collect_retrieved_files()<br/>dedupe snippets to full docs"]
+    viewer(["Prev / Next document viewer<br/>(player checks grounding)"])
+    retrieve --> sources --> viewer
+
+    %% ===== Testing coverage note =====
+    testnote["pytest: tests/test_game_logic.py (52 tests)<br/>covers ONLY the deterministic layer<br/>(check_guess, update_score, parse_guess,<br/>get_range_for_difficulty).<br/>tests/test_raguesser.py covers the rest."]
+
+    classDef humanNode fill:#4a90d9,color:#fff,stroke:#2c5f8a
+    classDef guardNode fill:#d97b4a,color:#fff,stroke:#8a4a2c
+    classDef extNode fill:#888888,color:#fff,stroke:#555555
+    classDef gapNode fill:none,stroke:#d94a4a,stroke-dasharray: 5 5,color:#d94a4a
+
+    class getFeedback,viewer humanNode
+    class guardrail,fallback,refuse guardNode
+    class gemini1,gemini2,docs extNode
+    class testnote gapNode

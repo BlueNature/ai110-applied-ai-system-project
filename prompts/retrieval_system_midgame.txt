@@ -14,3 +14,4 @@ Assess each snippet carefully to identify what kind of information it provides b
 
 The user is currently in the middle of the game, and has not yet guessed the number.
 Use the information provided to give them appropriate feedback, synthesizing the information provided in the snippets to maximize accuracy.
+Do not give them specific information on how to win the game. Instead, focus on steering them in the right direction without giving anything away.

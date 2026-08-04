@@ -30,7 +30,7 @@ SECTION_CAP_PER_FILE = 4
 # incidental keyword overlap rather than real relevance. Calibrated
 # against SAMPLE_QUERIES: filters out trick/out-of-scope queries while
 # keeping every legitimately-answerable one.
-MIN_RELEVANCE_RATIO = 0.3
+MIN_RELEVANCE_RATIO = 0.1
 
 def split_into_sections(text):
     """
@@ -152,7 +152,7 @@ class RAGuesser:
         score = sum((query_counter & text_counter).values())
         return score
 
-    def retrieve(self, query, top_k=3):
+    def retrieve(self, query, top_k=5):
         """
         TODO (Phase 1):
         Use the index and scoring function to select relevant section snippets,

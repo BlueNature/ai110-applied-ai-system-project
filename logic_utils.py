@@ -124,7 +124,8 @@ def retrieve_formatted_stats(difficulty: str, guess_num: int, guess_max: int, se
         guess_max: The maximum number of guesses for the current difficulty.
         secret: The secret number that the user must guess, included so that the AI can utilize it if needed.
         history: The list of previous guesses the user has made.
-        state: Whether the user is currently playing (midgame), or has won or lost (postgame).
+        state: The player's current status ("playing", "won", or "lost"),
+            matching the values st.session_state.status uses in app.py.
 
 
     Returns:
@@ -137,7 +138,7 @@ def retrieve_formatted_stats(difficulty: str, guess_num: int, guess_max: int, se
     output += "\n"
     if state == "playing":
         output += f"They are currently on guess number {guess_num} out of {guess_max}."
-    elif state == "win":
+    elif state == "won":
         output += f"They have completed the game and won after {guess_num} out of {guess_max} guesses."
     else:
         output += f"They have completed the game and lost after {guess_max} guesses."
@@ -150,6 +151,51 @@ def retrieve_formatted_stats(difficulty: str, guess_num: int, guess_max: int, se
         output += " DO NOT reveal this number to the user directly or indirectly; only use it to help create feedback."
 
     return output
+
+
+def generate_feedback(mode: str, raguesser, client, game_state: str):
+    """
+    Runs the keyword -> retrieve -> answer_feedback RAG pipeline.
+
+    Args:
+        mode: "midgame" or "postgame", forwarded to GeminiClient.answer_feedback.
+        raguesser: a RAGuesser instance.
+        client: a GeminiClient instance, or None if no API key is configured.
+        game_state: formatted via retrieve_formatted_stats().
+
+    Returns:
+        A (feedback_text, snippets) tuple, where snippets is the list of
+        (filename, text) tuples RAGuesser.retrieve() selected (possibly []).
+    """
+    if client is None:
+        return (
+            "Feedback is unavailable: GEMINI_API_KEY is not configured. "
+            "Add it to a .env file to enable AI feedback.",
+            [],
+        )
+
+    keywords = client.answer_keywords(game_state)
+    snippets = raguesser.retrieve(keywords)
+    feedback_text = client.answer_feedback(mode, snippets, game_state)
+    return feedback_text, snippets
+
+
+def collect_retrieved_files(snippets: list, raguesser):
+    """
+    Dedupes retrieved (filename, snippet) tuples down to one full-text
+    entry per distinct source file, preserving retrieval rank order.
+
+    Args:
+        snippets: list of (filename, text) tuples, as returned by
+            RAGuesser.retrieve().
+        raguesser: the RAGuesser instance the snippets were retrieved from.
+
+    Returns:
+        A list of (filename, full_text) tuples, one per distinct filename.
+    """
+    doc_map = dict(raguesser.documents)
+    seen = dict.fromkeys(filename for filename, _ in snippets)
+    return [(filename, doc_map[filename]) for filename in seen]
 
 
 def format_guess_history(history: list):
@@ -166,6 +212,6 @@ def format_guess_history(history: list):
     # initialize first
     output = "The player's guess history is as follows:\n"
     for i in range(len(history)):
-        output += f"Guess {i}: {history[i]}\n"
+        output += f"Guess {i+1}: {history[i]}\n"
 
     return output

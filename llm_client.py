@@ -52,14 +52,20 @@ class GeminiClient:
         self.temperature = float(temperature)
 
 
-    def answer_keywords(self):
+    def answer_keywords(self, game_state):
         """
         Call the Gemini model to create keywords/phrases that will be used to
         retrieve documents. The output of this function will be the input of the
         RAG retrieval function for obtaining documents.
+
+        game_state: the current game state (formatted via
+            logic_utils.retrieve_formatted_stats()), so the generated
+            keywords reflect what actually happened in this game rather
+            than being the same every time.
         """
         try:
-            merged_prompt = _load_prompt("keyword_system.txt").strip()
+            system_prompt = _load_prompt("keyword_system.txt").strip()
+            merged_prompt = f"{system_prompt}\n\nThe current game state is:\n{game_state}"
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=merged_prompt,
