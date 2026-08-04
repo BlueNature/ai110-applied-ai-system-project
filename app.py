@@ -132,7 +132,8 @@ if submit:
 
     if not ok:
         #FIX: Improper guesses no longer burn an attempt; only count valid guesses
-        st.session_state.history.append(raw_guess)
+        # however, will no longer append invalid guesses to history
+        # st.session_state.history.append(raw_guess)
         st.error(err)
     else:
         st.session_state.attempts += 1

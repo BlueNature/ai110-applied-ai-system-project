@@ -111,3 +111,61 @@ def update_score(current_score: int, outcome: str, attempt_number: int):
         return current_score - 5
 
     return current_score
+
+
+def retrieve_formatted_stats(difficulty: str, guess_num: int, guess_max: int, secret: int, history: list, state: str):
+    """
+    Takes stats from the current game state and formats them neatly for use
+    in the RAG system prompts.
+
+    Args:
+        difficulty: The current difficulty setting of the game (Easy, Medium, or Hard)
+        guess_num: The current guess number that the player is on.
+        guess_max: The maximum number of guesses for the current difficulty.
+        secret: The secret number that the user must guess, included so that the AI can utilize it if needed.
+        history: The list of previous guesses the user has made.
+        state: Whether the user is currently playing (midgame), or has won or lost (postgame).
+
+
+    Returns:
+        The aforementioned stats formatted neatly.
+    """
+    number_range = get_range_for_difficulty(difficulty)
+    output = ""
+
+    output += f"The user is currently playing on {difficulty.lower()} mode, which has a valid number range from {number_range[0]} to {number_range[1]}, inclusive."
+    output += "\n"
+    if state == "playing":
+        output += f"They are currently on guess number {guess_num} out of {guess_max}."
+    elif state == "win":
+        output += f"They have completed the game and won after {guess_num} out of {guess_max} guesses."
+    else:
+        output += f"They have completed the game and lost after {guess_max} guesses."
+    output += "\n\n"
+    output += format_guess_history(history)
+    output += "\n"
+    output += f"The secret number the user must guess is {secret}."
+    if state == "playing":
+        # add additional message since the game isn't over yet
+        output += " DO NOT reveal this number to the user directly or indirectly; only use it to help create feedback."
+
+    return output
+
+
+def format_guess_history(history: list):
+    """
+    A separate function that takes the player's guess history and formats it into a string.
+    Primarily used in retrieve_formatted_stats().
+
+    Args:
+        history: The list of previous guesses the user has made.
+    
+    Returns:
+        A string of the history neatly formatted as a table.
+    """
+    # initialize first
+    output = "The player's guess history is as follows:\n"
+    for i in range(len(history)):
+        output += f"Guess {i}: {history[i]}\n"
+
+    return output

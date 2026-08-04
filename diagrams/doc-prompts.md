@@ -7,4 +7,4 @@
 "Give me a brief but detailed lesson on those games where you guess a number and receive high/low clues, particularly how gambler's fallacy may influence one's guesses. Focus on the explanation of gambler's fallacy and how it relates to this game as well as the broader world. The lesson should be formatted into paragraphs and should be suitable for a general audience, and make sure it is easy to copy and paste without losing formatting."
 
 `popular-numbers-1-chatgpt`
-""
+"Give me a brief but detailed lesson on those games where you guess a number and receive high/low clues, particularly how people may choose guesses that "feel" right. Continue into an explanation of how humans choose random numbers and how this can depend on different, biased factors, and the differences between humans and computers randomly choosing numbers. The lesson should be formatted into paragraphs and should be suitable for a general audience, and make sure it is easy to copy and paste without losing formatting."

@@ -1,0 +1,5 @@
+The current state of the game is as follows:
+{STATE}
+
+The retrieved snippets are:
+{SNIPPETS}

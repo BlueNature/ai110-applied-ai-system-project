@@ -1,5 +1,5 @@
 """
-Gemini client wrapper used by DocuBot. (initialy copied from module 4 tinker)
+Gemini client wrapper used by DocuBot. (initially copied from module 4 tinker)
 init() function is adapted from module 5 tinker.
 
 Handles:
@@ -17,6 +17,14 @@ import os
 # from google import genai
 
 
+# Directory where prompt templates live, relative to this file
+PROMPTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prompts")
+
+def _load_prompt(filename: str) -> str:
+    """Load a prompt template from the prompts/ folder."""
+    path = os.path.join(PROMPTS_DIR, filename)
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
 
 class GeminiClient:
     """
@@ -43,39 +51,35 @@ class GeminiClient:
         self.model_name = model_name
         self.temperature = float(temperature)
 
-    # -----------------------------------------------------------
-    # Phase 0: naive generation over full docs
-    # -----------------------------------------------------------
 
-    def naive_answer_over_full_docs(self, query, all_text):
-        # We ignore all_text and send a generic prompt instead
-        prompt = f"""
-    You are a documentation assistant. 
-    Answer this developer question: {query}
-    """
+    def answer_keywords(self):
+        """
+        Call the Gemini model to create keywords/phrases that will be used to
+        retrieve documents. The output of this function will be the input of the
+        RAG retrieval function for obtaining documents.
+        """
         try:
+            merged_prompt = _load_prompt("keyword_system.txt").strip()
             response = self.client.models.generate_content(
                 model=self.model_name,
-                contents=prompt
+                contents=merged_prompt,
             )
             return (response.text or "").strip()
         except Exception as e:
-            return f"Unable to generate an answer. ({type(e).__name__}: {e})"
+            return f"API error — could not generate content. ({type(e).__name__}: {e})"
 
-    # -----------------------------------------------------------
-    # Phase 2: RAG style generation over retrieved snippets
-    # -----------------------------------------------------------
 
-    def answer_from_snippets(self, query, snippets):
+    def answer_feedback(self, mode, snippets, game_state):
         """
-        Phase 2:
-        Generate an answer using only the retrieved snippets.
+        Generate an answer using the retrieved snippets.
 
-        snippets: list of (filename, text) tuples selected by DocuBot.retrieve
+        mode: whether the feedback is being given during or after the game is finished
+        snippets: list of (filename, text) tuples selected by RAGuesser.retrieve
+        game_state: the current game state (should be formatted beforehand through logic_utils.retrieve_formatted_stats())
 
         The prompt:
         - Shows each snippet with its filename
-        - Instructs the model to rely only on these snippets
+        - Instructs the model to generate feedback based on these snippets and the game's state
         - Requires an explicit "I do not know" refusal when needed
         """
 
@@ -86,39 +90,17 @@ class GeminiClient:
         for filename, text in snippets:
             block = f"File: {filename}\n{text}\n"
             context_blocks.append(block)
-
         context = "\n\n".join(context_blocks)
+        system_prompt = _load_prompt("retrieval_system_midgame.txt") if mode == "midgame" else _load_prompt("retrieval_system_postgame.txt")
+        user_prompt = _load_prompt("retrieval_user.txt")
 
-        prompt = f"""
-You are a cautious documentation assistant helping developers understand a codebase.
-
-You will receive:
-- A developer question
-- A small set of snippets from project files
-
-Your job:
-- Answer the question using only the information in the snippets.
-- If the snippets do not provide enough evidence, refuse to guess.
-
-Snippets:
-{context}
-
-Developer question:
-{query}
-
-Rules:
-- Use only the information in the snippets. Do not invent new functions,
-  endpoints, or configuration values.
-- If the snippets are not enough to answer confidently, reply exactly:
-  "I do not know based on the docs I have."
-- When you do answer, briefly mention which files you relied on.
-"""
 
         try:
+            merged_prompt = f"{system_prompt}\n\n{user_prompt}".strip().format(STATE=game_state, SNIPPETS=context)
             response = self.client.models.generate_content(
                 model=self.model_name,
-                contents=prompt
+                contents=merged_prompt,
             )
             return (response.text or "").strip()
         except Exception as e:
-            return f"API error — could not generate answer. ({type(e).__name__}: {e})"
+            return f"API error — could not generate content. ({type(e).__name__}: {e})"
