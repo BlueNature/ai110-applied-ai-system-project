@@ -1,33 +1,52 @@
-# 🎮 Game Glitch Investigator: The Impossible Guesser
+# 🎮 RAGuesser: The ~~Impossible~~ *Possible* Guesser!
 
-## 🚨 The Situation
+RAGuesser is an adaptation of the classic number-guessing game with a twist: you can receive feedback from AI! Use the clues you receive to reach the right answer, and if you're ever stuck, you can receive help right there. It nudges you toward the right answer, gives you helpful feedback to improve your play, and teaches you interesting facts about algorithmic thinking and human psychology—all without spoiling the answer for you. The best part? After the game is finished, it shows the exact documents it used in full, so you can read them and learn for yourself.
 
-You asked an AI to build a simple "Number Guessing Game" using Streamlit.
-It wrote the code, ran away, and now the game is unplayable. 
+## Architecture Overview
 
-- You can't win.
-- The hints lie to you.
-- The secret number seems to have commitment issues.
+The `architecture.mmd` file in the `diagrams` subfolder contains a diagram explaining exactly how the RAG pipeline used for the AI feedback works. As the player makes guesses, the game state is updated with their history of guesses as well as basic information about the mode they are playing on. This is given to an initial LLM call which generates tailored keywords that can be used for the retrieval step.
+
+The RAG pipeline is simple: it creates an inverted index of tokens matched to snippets of corresponding documents, then it matches tokens found in the keywords with those of the snippets. The selection process is modified so that multiple snippets from the same file are more likely to appear, since they will logically go well together even if they may not all have substantial scores.
+
+The main LLM call is given a detailed prompt, details about the current game state, and the retrieved document snippets, in order to generate useful feedback that nudges the player in the right direction.
 
 ## 🛠️ Setup
 
 1. Install dependencies: `pip install -r requirements.txt`
-2. Run the broken app: `python -m streamlit run app.py`
+2. Place your Google Gemini API key in `.env` (`GEMINI_API_KEY=yourKeyHere`)
+2. Run the app: `python -m streamlit run app.py`
 
-## 🕵️‍♂️ Your Mission
+## Sample Interactions
 
-1. **Play the game.** Open the "Developer Debug Info" tab in the app to see the secret number. Try to win.
-2. **Find the State Bug.** Why does the secret number change every time you click "Submit"? Ask ChatGPT: *"How do I keep a variable from resetting in Streamlit when I click a button?"*
-3. **Fix the Logic.** The hints ("Higher/Lower") are wrong. Fix them.
-4. **Refactor & Test.** - Move the logic into `logic_utils.py`.
-   - Run `pytest` in your terminal.
-   - Keep fixing until all tests pass!
+**Game 1: Normal Mode (Range 1-50, Secret Number 14, In Progress)**
 
-## 📝 Document Your Experience
+> Hello! I am RAGuesser, your guide for this number-guessing game. You are currently playing on normal mode, meaning the valid range is from 1 to 50, and you are on guess number 3 out of 6.
+> 
+> Let's review your recent guess history and the clues you've gathered so far:
+> Guess 1: 12 (Too low), Guess 2: 36 (Too high), Guess 3: 26 (Too high)
+> 
+> *(Output continues with evaluation and strategy tips...)* 
+> 
+> You have 3 guesses remaining. Take a breath, look at your active range (13–25), evaluate the midpoint, and make your next calculated move! Good luck!
 
-- [x] Describe the game's purpose.
-- [x] Detail which bugs you found.
-- [x] Explain what fixes you applied.
+**Game 2: Normal Mode (Range 1-50, Secret Number 14, Lost)**
+
+> Hello! I am RAGuesser. Let's review your recent performance in the normal mode of the number-guessing game, where the secret number was 14 within the range of 1 to 50.
+> 
+> Unfortunately, you lost the game after 6 guesses.
+> Guess 1: 12 (Too low), Guess 2: 36 (Too high), Guess 3: 26 (Too high), Guess 4: 22 (Too high), Guess 5: 19 (Too high), Guess 6: 13 (Too low)
+> 
+> *(Output continues with strategy analysis on binary search and the gambler's fallacy...)*
+> 
+> You were agonizingly close—your final guess of 13 was just one digit away from the secret number (14)! To improve next time, focus strictly on calculating the exact midpoint of your current high and low boundaries, ignoring gut feelings or past streaks.
+
+## Design Decisions
+
+I thought the idea of over-engineering a number-guessing game was kind of funny, but I was also able to turn it into a fun educational opportunity! I consider that a success.
+
+Specifically, I chose to implement RAG into this game because while the optimal strategy is easy to execute once you understand it, not all people do, and even fewer people understand why it really works. Having specific documents that teach this information help guide the LLM toward forming the right responses for the job: through careful prompting, I was able to balance education with not making things too easy.
+
+That being said, one place I would reconsider is the LLM pipeline. It uses one LLM call to generate the feedback, but another to generate the keywords! This can be seen as unnecessarily expensive and might cause people to reach usage limits faster than they expected for playing a game in which you guess a number. (I also didn't know how to switch models for different calls or if that would even change the limits.) But while something like making a basic algorithm to generate keywords would be cheaper, it would be very hard to make it read from the game state as well to tailor its output. 
 
 ## 📸 Demo Walkthrough
 
@@ -50,69 +69,26 @@ Describe your fixed game in numbered steps so a reader can follow along without 
 # Paste your pytest output here, e.g.:
 # pytest tests/
 # 
-# ============================= test session starts ==============================
-# platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0 -- /home/aabedin/CodePath/codepath_venv/bin/python
-# cachedir: .pytest_cache
-# rootdir: /home/aabedin/CodePath/ai110-module1show-gameglitchinvestigator-starter
+# ========================================================================= test session starts =========================================================================
+# platform linux -- Python 3.12.3, pytest-9.0.3, pluggy-1.6.0
+# rootdir: /home/aabedin/CodePath/ai110-applied-ai-system-final
 # plugins: anyio-4.13.0
-# collecting ... collected 52 items
+# collected 107 items                                                                                                                                                   
 # 
-# tests/test_game_logic.py::test_winning_guess PASSED                      [  1%]
-# tests/test_game_logic.py::test_winning_guess_off_boundary PASSED         [  3%]
-# tests/test_game_logic.py::test_guess_one_above_is_too_high PASSED        [  5%]
-# tests/test_game_logic.py::test_guess_one_below_is_too_low PASSED         [  7%]
-# tests/test_game_logic.py::test_negative_numbers_compare_correctly PASSED [  9%]
-# tests/test_game_logic.py::test_guess_too_high PASSED                     [ 11%]
-# tests/test_game_logic.py::test_guess_too_low PASSED                      [ 13%]
-# tests/test_game_logic.py::test_hint_too_high_says_go_lower PASSED        [ 15%]
-# tests/test_game_logic.py::test_hint_too_low_says_go_higher PASSED        [ 17%]
-# tests/test_game_logic.py::test_win_awards_points PASSED                  [ 19%]
-# tests/test_game_logic.py::test_win_score_decreases_with_more_attempts PASSED [ 21%]
-# tests/test_game_logic.py::test_win_score_never_below_10_bonus PASSED     [ 23%]
-# tests/test_game_logic.py::test_too_high_subtracts_points PASSED          [ 25%]
-# tests/test_game_logic.py::test_too_high_odd_attempt_subtracts PASSED     [ 26%]
-# tests/test_game_logic.py::test_too_low_subtracts_points PASSED           [ 28%]
-# tests/test_game_logic.py::test_unknown_outcome_unchanged PASSED          [ 30%]
-# tests/test_game_logic.py::test_too_high_and_too_low_subtract_same_amount PASSED [ 32%]
-# tests/test_game_logic.py::test_win_on_first_attempt_awards_100 PASSED    [ 34%]
-# tests/test_game_logic.py::test_win_adds_to_existing_score PASSED         [ 36%]
-# tests/test_game_logic.py::test_subtracting_can_go_negative PASSED        [ 38%]
-# tests/test_game_logic.py::test_empty_outcome_unchanged PASSED            [ 40%]
-# tests/test_game_logic.py::test_easy_range PASSED                         [ 42%]
-# tests/test_game_logic.py::test_normal_range PASSED                       [ 44%]
-# tests/test_game_logic.py::test_hard_range PASSED                         [ 46%]
-# tests/test_game_logic.py::test_unknown_difficulty_defaults_to_hard_range PASSED [ 48%]
-# tests/test_game_logic.py::test_difficulty_is_case_sensitive PASSED       [ 50%]
-# tests/test_game_logic.py::test_parse_valid_integer PASSED                [ 51%]
-# tests/test_game_logic.py::test_parse_negative_integer PASSED             [ 53%]
-# tests/test_game_logic.py::test_parse_float_string_truncates PASSED       [ 55%]
-# tests/test_game_logic.py::test_parse_none_returns_error PASSED           [ 57%]
-# tests/test_game_logic.py::test_parse_empty_string_returns_error PASSED   [ 59%]
-# tests/test_game_logic.py::test_parse_non_numeric_returns_error PASSED    [ 61%]
-# tests/test_game_logic.py::test_parse_surrounding_whitespace_is_stripped PASSED [ 63%]
-# tests/test_game_logic.py::test_parse_whitespace_only_is_not_a_number PASSED [ 65%]
-# tests/test_game_logic.py::test_parse_leading_plus_sign PASSED            [ 67%]
-# tests/test_game_logic.py::test_parse_underscore_separated_int PASSED     [ 69%]
-# tests/test_game_logic.py::test_parse_scientific_notation_fails_without_dot PASSED [ 71%]
-# tests/test_game_logic.py::test_parse_negative_float_truncates_toward_zero PASSED [ 73%]
-# tests/test_game_logic.py::test_parse_leading_dot_float PASSED            [ 75%]
-# tests/test_game_logic.py::test_parse_trailing_dot_float PASSED           [ 76%]
-# tests/test_game_logic.py::test_parse_negative_leading_dot_truncates_to_zero PASSED [ 78%]
-# tests/test_game_logic.py::test_parse_multiple_dots_fails PASSED          [ 80%]
-# tests/test_game_logic.py::test_parse_dot_only_fails PASSED               [ 82%]
-# tests/test_game_logic.py::test_win_floor_boundary_attempt_10_is_exactly_10 PASSED [ 84%]
-# tests/test_game_logic.py::test_win_floor_boundary_attempt_11_floors_to_10 PASSED [ 86%]
-# tests/test_game_logic.py::test_win_just_above_floor_attempt_9_awards_20 PASSED [ 88%]
-# tests/test_game_logic.py::test_win_floor_applies_even_with_existing_score PASSED [ 90%]
-# tests/test_game_logic.py::test_wrong_guess_from_negative_score_goes_more_negative PASSED [ 92%]
-# tests/test_game_logic.py::test_full_workflow_parse_then_win PASSED       [ 94%]
-# tests/test_game_logic.py::test_full_workflow_misses_then_win_accumulates_score PASSED [ 96%]
-# tests/test_game_logic.py::test_full_workflow_invalid_input_does_not_advance_score PASSED [ 98%]
-# tests/test_game_logic.py::test_full_workflow_hard_difficulty_upper_boundary_win PASSED [100%]
+# tests/test_game_logic.py ....................................................                                                                                   [ 48%]
+# tests/test_raguesser.py .......................................................                                                                                 [100%]
 # 
-# ============================== 52 passed in 0.10s ==============================
+# ========================================================================= 107 passed in 0.24s =========================================================================
 ```
+The first suite of tests was simple to design and monitor since the game logic is simple; it's just guessing a number and receiving higher or lower. Testing the RAG was harder since I was less familiar with it and there were a lot more steps involved. I'm very happy that all the tests designed passed, but if I had more time it wouldn't hurt to do another sanity check and walk through the code again myself.
+
+## Reflection
+
+Overall, this project reminded me that a lot of the human aspect to building projects is still valuable. I probably spent more time designing the feature than I did implementing it, which I realize is going to become increasingly true as I move on throughout my career as a CS student. Still, I made sure to check the AI's output thoroughly because I wasn't always familiar with the libraries we were using (e.g. file I/O, Streamlit), so I often paused to make sure I understood what was going on.
 
 ## 🚀 Stretch Features
 
-- [ ] [If you choose to complete Challenge 4, describe the Enhanced UI changes here — a screenshot is optional]
+**Advanced RAG:**
+The RAG system used for this project is a step up from the one we used for the initial tinker. First of all, it uses a variety of real documents sourced from real online articles, transcribed YouTube videos, and some generated by ChatGPT specifically for this game. These articles are tailored to touch on common concepts relating to this sort of game, including binary search (the optimal strategy for guessing), common alternatives to searching (like linear search or choosing randomly), gambler's fallacy (a fallacious way of thinking that can suboptimally influence people's guesses), and the supposed idea of inherently "random" numbers (37) and how humans decide randomness differently from computers.
+
+Additionally, the current game state is heavily tied into the RAG pipeline at all steps. This means that the LLM can analyze the player's current status and guessing habits and suggest a tailored course of action. I initially didn't include the game state in the keyword-generation LLM, but I realized that this might make most generations the same instead of adapting to the user.
