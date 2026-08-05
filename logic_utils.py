@@ -1,6 +1,5 @@
-# FIX: Refactored logic into logic_utils.py using agent mode
+# Refactored logic into logic_utils.py using agent mode
 
-# FIX: Swapped difficulty range for normal and hard
 def get_range_for_difficulty(difficulty: str):
     """Return the inclusive guessing range for a difficulty level.
 
@@ -67,8 +66,6 @@ def check_guess(guess, secret):
         "Too Low" otherwise. ``message`` is a user-facing hint string for
         that outcome.
     """
-    # FIX: Removed dead/buggy except TypeError fallback that did lexicographic
-    # string comparison; secret and guess are always ints now
     if guess == secret:
         return "Win", "🎉 Correct!"
 
@@ -78,8 +75,6 @@ def check_guess(guess, secret):
         return "Too Low", "📈 Go HIGHER!"
 
 
-# FIX: Fixed off-by-two error for calculating points won after guessing
-# correctly (interpreting as winning on first guess earns 100)
 def update_score(current_score: int, outcome: str, attempt_number: int):
     """Compute the new score after a single guess.
 

@@ -38,7 +38,6 @@ difficulty = st.sidebar.selectbox(
     index=1,
 )
 
-#FIX: Changed attempt limits for normal and hard
 attempt_limit_map = {
     "Easy": 6,
     "Normal": 6,
@@ -51,12 +50,8 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
-# Stretch Goal 2: Add high score metric in the sidebar
 st.sidebar.metric("🏆 High Score", st.session_state.get("high_score", 0))
 
-#FIX: Changing difficulty no longer leaves the old secret/score/attempts in
-#play; selecting a new difficulty now resets state and starts a fresh game
-#with a secret drawn from the new difficulty's range
 if "difficulty" not in st.session_state:
     st.session_state.difficulty = difficulty
 
@@ -76,14 +71,12 @@ if difficulty != st.session_state.difficulty:
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
-#FIX: Fixed off-by-one error for initialization attempt number
 if "attempts" not in st.session_state:
     st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
 
-# Stretch Goal 2: High score persists across games/difficulty changes within the session
 if "high_score" not in st.session_state:
     st.session_state.high_score = 0
 
@@ -107,7 +100,6 @@ if "file_viewer_idx" not in st.session_state:
 
 st.subheader("Make a guess")
 
-#FIX: Changed hardcoded range to use actual difficulty range (low/high variables)
 #FIX: Reserve the info box's spot here, but populate it after the guess is
 #processed so "Attempts left" reflects the current attempt instead of lagging
 #one behind (the submit handler below increments attempts after this point)
@@ -133,9 +125,7 @@ with col3:
 
 if new_game:
     st.session_state.attempts = 0
-    #FIX: Guess range no longer stays at [1, 100] regardless of difficulty
     st.session_state.secret = random.randint(low, high)
-    #FIX: Reset status so New Game is playable after a win/loss; clear stale history
     st.session_state.status = "playing"
     st.session_state.history = []
     # also choose to reset score
@@ -218,8 +208,6 @@ if submit:
         st.session_state.attempts += 1
         st.session_state.history.append(guess_int)
 
-        #FIX: Removed even-attempt str(secret) conversion that made guesses
-        #unwinnable and produced wrong hints (int vs str comparison) every other turn
         outcome, message = check_guess(guess_int, st.session_state.secret)
 
         if show_hint:
@@ -234,7 +222,6 @@ if submit:
         if outcome == "Win":
             st.balloons()
             st.session_state.status = "won"
-            # Stretch Goal 2: Record best winning score this session
             if st.session_state.score > st.session_state.high_score:
                 st.session_state.high_score = st.session_state.score
             st.success(
